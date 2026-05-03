@@ -182,8 +182,8 @@ const Staff = () => {
                   <p className="text-xs text-muted-foreground">Order</p>
                   <p className="font-mono font-semibold">#{order.id.slice(0, 8).toUpperCase()}</p>
                 </div>
-                {verified ? (
-                  <Badge className="bg-success text-success-foreground"><ShieldCheck className="h-3 w-3 mr-1" /> Verified</Badge>
+                {completed ? (
+                  <Badge className="bg-success text-success-foreground"><ShieldCheck className="h-3 w-3 mr-1" /> Completed</Badge>
                 ) : expired ? (
                   <Badge variant="destructive"><Clock className="h-3 w-3 mr-1" /> Expired</Badge>
                 ) : (
