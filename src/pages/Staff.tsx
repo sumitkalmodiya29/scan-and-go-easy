@@ -112,20 +112,26 @@ const Staff = () => {
     setScanning(false);
   };
 
-  const approveExit = async () => {
-    if (!order || !user) return;
+  const completeOrder = async (orderId: string) => {
+    if (!user) return false;
     const { error } = await supabase
       .from("orders")
-      .update({ status: "verified", verified_at: new Date().toISOString(), verified_by: user.id })
-      .eq("id", order.id)
-      .eq("status", "paid"); // ensure one-time
-    if (error) { toast.error(error.message); return; }
-    toast.success("Exit approved ✓");
-    setOrder({ ...order, status: "verified", verified_at: new Date().toISOString() });
+      .update({ status: "completed", verified_at: new Date().toISOString(), verified_by: user.id })
+      .eq("id", orderId)
+      .neq("status", "completed");
+    if (error) { toast.error(error.message); return false; }
+    toast.success("Exit approved — order completed ✓");
+    return true;
+  };
+
+  const approveExit = async () => {
+    if (!order) return;
+    const ok = await completeOrder(order.id);
+    if (ok) setOrder({ ...order, status: "completed", verified_at: new Date().toISOString() });
   };
 
   const expired = order ? new Date(order.expires_at).getTime() < Date.now() : false;
-  const verified = order?.status === "verified";
+  const completed = order?.status === "completed" || order?.status === "verified";
 
   return (
     <AppLayout title="Staff">
