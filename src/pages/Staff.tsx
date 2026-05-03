@@ -148,6 +148,27 @@ const Staff = () => {
             )}
           </Card>
 
+          <Card className="p-4 shadow-soft">
+            <h2 className="font-semibold flex items-center gap-2 mb-3">
+              <Search className="h-4 w-4 text-primary" /> Manual Order Lookup
+            </h2>
+            <p className="text-xs text-muted-foreground mb-3">
+              Enter the 8-character Order ID (e.g. <span className="font-mono">A1B2C3D4</span>) shown on the customer's receipt.
+            </p>
+            <form
+              className="flex gap-2"
+              onSubmit={(e) => { e.preventDefault(); loadOrderById(manualId); }}
+            >
+              <Input
+                placeholder="Order ID"
+                value={manualId}
+                onChange={(e) => setManualId(e.target.value)}
+                className="font-mono uppercase"
+              />
+              <Button type="submit" disabled={!manualId.trim()}>Verify</Button>
+            </form>
+          </Card>
+
           {order && (
             <Card className="p-4 shadow-elegant">
               <div className="flex items-start justify-between mb-3">
