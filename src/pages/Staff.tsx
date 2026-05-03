@@ -204,7 +204,7 @@ const Staff = () => {
               <div className="flex justify-between font-bold mb-4">
                 <span>Total Paid</span><span>₹{Number(order.total).toFixed(2)}</span>
               </div>
-              {verified ? (
+              {completed ? (
                 <div className="flex items-center justify-center gap-2 text-success py-2">
                   <CheckCircle2 className="h-5 w-5" /> Customer cleared to exit
                 </div>
