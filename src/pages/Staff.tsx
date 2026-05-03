@@ -221,7 +221,12 @@ const Staff = () => {
             <div className="space-y-2">
               {recent.length === 0 && <p className="text-sm text-muted-foreground">No orders yet.</p>}
               {recent.map((o) => (
-                <div key={o.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => loadOrderById(o.id)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg border bg-card text-left hover:bg-accent hover:border-primary/40 transition-colors"
+                >
                   <div>
                     <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8).toUpperCase()}</p>
                     <p className="text-sm">₹{Number(o.total).toFixed(2)} • {new Date(o.created_at).toLocaleTimeString()}</p>
@@ -233,7 +238,7 @@ const Staff = () => {
                   ) : (
                     <Badge className="bg-warning text-warning-foreground">Paid</Badge>
                   )}
-                </div>
+                </button>
               ))}
             </div>
           </ScrollArea>
