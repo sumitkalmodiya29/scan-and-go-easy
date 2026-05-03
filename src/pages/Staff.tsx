@@ -112,20 +112,26 @@ const Staff = () => {
     setScanning(false);
   };
 
-  const approveExit = async () => {
-    if (!order || !user) return;
+  const completeOrder = async (orderId: string) => {
+    if (!user) return false;
     const { error } = await supabase
       .from("orders")
-      .update({ status: "verified", verified_at: new Date().toISOString(), verified_by: user.id })
-      .eq("id", order.id)
-      .eq("status", "paid"); // ensure one-time
-    if (error) { toast.error(error.message); return; }
-    toast.success("Exit approved ✓");
-    setOrder({ ...order, status: "verified", verified_at: new Date().toISOString() });
+      .update({ status: "completed", verified_at: new Date().toISOString(), verified_by: user.id })
+      .eq("id", orderId)
+      .neq("status", "completed");
+    if (error) { toast.error(error.message); return false; }
+    toast.success("Exit approved — order completed ✓");
+    return true;
+  };
+
+  const approveExit = async () => {
+    if (!order) return;
+    const ok = await completeOrder(order.id);
+    if (ok) setOrder({ ...order, status: "completed", verified_at: new Date().toISOString() });
   };
 
   const expired = order ? new Date(order.expires_at).getTime() < Date.now() : false;
-  const verified = order?.status === "verified";
+  const completed = order?.status === "completed" || order?.status === "verified";
 
   return (
     <AppLayout title="Staff">
@@ -176,8 +182,8 @@ const Staff = () => {
                   <p className="text-xs text-muted-foreground">Order</p>
                   <p className="font-mono font-semibold">#{order.id.slice(0, 8).toUpperCase()}</p>
                 </div>
-                {verified ? (
-                  <Badge className="bg-success text-success-foreground"><ShieldCheck className="h-3 w-3 mr-1" /> Verified</Badge>
+                {completed ? (
+                  <Badge className="bg-success text-success-foreground"><ShieldCheck className="h-3 w-3 mr-1" /> Completed</Badge>
                 ) : expired ? (
                   <Badge variant="destructive"><Clock className="h-3 w-3 mr-1" /> Expired</Badge>
                 ) : (
@@ -198,7 +204,7 @@ const Staff = () => {
               <div className="flex justify-between font-bold mb-4">
                 <span>Total Paid</span><span>₹{Number(order.total).toFixed(2)}</span>
               </div>
-              {verified ? (
+              {completed ? (
                 <div className="flex items-center justify-center gap-2 text-success py-2">
                   <CheckCircle2 className="h-5 w-5" /> Customer cleared to exit
                 </div>
@@ -220,26 +226,38 @@ const Staff = () => {
           <ScrollArea className="h-[600px] pr-2">
             <div className="space-y-2">
               {recent.length === 0 && <p className="text-sm text-muted-foreground">No orders yet.</p>}
-              {recent.map((o) => (
-                <button
-                  key={o.id}
-                  type="button"
-                  onClick={() => loadOrderById(o.id)}
-                  className="w-full flex items-center justify-between p-3 rounded-lg border bg-card text-left hover:bg-accent hover:border-primary/40 transition-colors"
-                >
-                  <div>
-                    <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8).toUpperCase()}</p>
-                    <p className="text-sm">₹{Number(o.total).toFixed(2)} • {new Date(o.created_at).toLocaleTimeString()}</p>
+              {recent.map((o) => {
+                const isCompleted = o.status === "completed" || o.status === "verified";
+                const isExpired = !isCompleted && new Date(o.expires_at).getTime() < Date.now();
+                return (
+                  <div
+                    key={o.id}
+                    className="flex items-center justify-between gap-2 p-3 rounded-lg border bg-card hover:border-primary/40 transition-colors"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => loadOrderById(o.id)}
+                      className="flex-1 text-left"
+                    >
+                      <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8).toUpperCase()}</p>
+                      <p className="text-sm">₹{Number(o.total).toFixed(2)} • {new Date(o.created_at).toLocaleTimeString()}</p>
+                    </button>
+                    {isCompleted ? (
+                      <Badge className="bg-success text-success-foreground">Completed</Badge>
+                    ) : isExpired ? (
+                      <Badge variant="destructive">Expired</Badge>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="gradient-primary text-primary-foreground border-0"
+                        onClick={(e) => { e.stopPropagation(); completeOrder(o.id); }}
+                      >
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Approve Exit
+                      </Button>
+                    )}
                   </div>
-                  {o.status === "verified" ? (
-                    <Badge className="bg-success text-success-foreground">Checked</Badge>
-                  ) : new Date(o.expires_at).getTime() < Date.now() ? (
-                    <Badge variant="destructive">Expired</Badge>
-                  ) : (
-                    <Badge className="bg-warning text-warning-foreground">Paid</Badge>
-                  )}
-                </button>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
         </Card>
