@@ -7,8 +7,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { QrCode, CheckCircle2, XCircle, ShieldCheck, Clock } from "lucide-react";
+import { QrCode, CheckCircle2, XCircle, ShieldCheck, Clock, Search } from "lucide-react";
 
 interface OrderRow {
   id: string;
@@ -30,6 +31,7 @@ interface ItemRow {
 const Staff = () => {
   const { user } = useAuth();
   const [scanning, setScanning] = useState(false);
+  const [manualId, setManualId] = useState("");
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [recent, setRecent] = useState<OrderRow[]>([]);
@@ -90,6 +92,26 @@ const Staff = () => {
     setScanning(false);
   };
 
+  const loadOrderById = async (rawId: string) => {
+    const orderId = rawId.trim().toLowerCase();
+    if (!orderId) { toast.error("Enter an Order ID"); return; }
+    let query = supabase.from("orders").select("*");
+    if (orderId.length < 36) {
+      query = query.ilike("id", `${orderId}%`);
+    } else {
+      query = query.eq("id", orderId);
+    }
+    const { data: matches, error } = await query.limit(2);
+    if (error) { toast.error(error.message); return; }
+    if (!matches || matches.length === 0) { toast.error("Order not found"); return; }
+    if (matches.length > 1) { toast.error("Multiple matches — enter full ID"); return; }
+    const o = matches[0] as OrderRow;
+    const { data: it } = await supabase.from("order_items").select("*").eq("order_id", o.id);
+    setOrder(o);
+    setItems((it as ItemRow[]) ?? []);
+    setScanning(false);
+  };
+
   const approveExit = async () => {
     if (!order || !user) return;
     const { error } = await supabase
@@ -124,6 +146,27 @@ const Staff = () => {
                 <p className="text-sm">Tap "Start Scanner" to verify exit</p>
               </div>
             )}
+          </Card>
+
+          <Card className="p-4 shadow-soft">
+            <h2 className="font-semibold flex items-center gap-2 mb-3">
+              <Search className="h-4 w-4 text-primary" /> Manual Order Lookup
+            </h2>
+            <p className="text-xs text-muted-foreground mb-3">
+              Enter the 8-character Order ID (e.g. <span className="font-mono">A1B2C3D4</span>) shown on the customer's receipt.
+            </p>
+            <form
+              className="flex gap-2"
+              onSubmit={(e) => { e.preventDefault(); loadOrderById(manualId); }}
+            >
+              <Input
+                placeholder="Order ID"
+                value={manualId}
+                onChange={(e) => setManualId(e.target.value)}
+                className="font-mono uppercase"
+              />
+              <Button type="submit" disabled={!manualId.trim()}>Verify</Button>
+            </form>
           </Card>
 
           {order && (
@@ -178,7 +221,12 @@ const Staff = () => {
             <div className="space-y-2">
               {recent.length === 0 && <p className="text-sm text-muted-foreground">No orders yet.</p>}
               {recent.map((o) => (
-                <div key={o.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => loadOrderById(o.id)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg border bg-card text-left hover:bg-accent hover:border-primary/40 transition-colors"
+                >
                   <div>
                     <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8).toUpperCase()}</p>
                     <p className="text-sm">₹{Number(o.total).toFixed(2)} • {new Date(o.created_at).toLocaleTimeString()}</p>
@@ -190,7 +238,7 @@ const Staff = () => {
                   ) : (
                     <Badge className="bg-warning text-warning-foreground">Paid</Badge>
                   )}
-                </div>
+                </button>
               ))}
             </div>
           </ScrollArea>
