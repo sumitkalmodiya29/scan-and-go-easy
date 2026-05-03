@@ -92,6 +92,26 @@ const Staff = () => {
     setScanning(false);
   };
 
+  const loadOrderById = async (rawId: string) => {
+    const orderId = rawId.trim().toLowerCase();
+    if (!orderId) { toast.error("Enter an Order ID"); return; }
+    let query = supabase.from("orders").select("*");
+    if (orderId.length < 36) {
+      query = query.ilike("id", `${orderId}%`);
+    } else {
+      query = query.eq("id", orderId);
+    }
+    const { data: matches, error } = await query.limit(2);
+    if (error) { toast.error(error.message); return; }
+    if (!matches || matches.length === 0) { toast.error("Order not found"); return; }
+    if (matches.length > 1) { toast.error("Multiple matches — enter full ID"); return; }
+    const o = matches[0] as OrderRow;
+    const { data: it } = await supabase.from("order_items").select("*").eq("order_id", o.id);
+    setOrder(o);
+    setItems((it as ItemRow[]) ?? []);
+    setScanning(false);
+  };
+
   const approveExit = async () => {
     if (!order || !user) return;
     const { error } = await supabase
