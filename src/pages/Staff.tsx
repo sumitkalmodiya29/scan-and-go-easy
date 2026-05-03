@@ -31,6 +31,7 @@ interface ItemRow {
 const Staff = () => {
   const { user } = useAuth();
   const [scanning, setScanning] = useState(false);
+  const [manualId, setManualId] = useState("");
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [recent, setRecent] = useState<OrderRow[]>([]);
