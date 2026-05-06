@@ -6,6 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/hooks/useCart";
 import { RequireAuth } from "@/components/RequireAuth";
+import { I18nProvider } from "@/lib/i18n";
+import { useEffect } from "react";
+import { primeCache, refreshProductCache, isCacheStale } from "@/lib/productCache";
+import { syncQueue } from "@/lib/db";
+import { toast } from "sonner";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import Shop from "./pages/Shop.tsx";
@@ -16,14 +21,33 @@ import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
 
+const Bootstrap = () => {
+  useEffect(() => {
+    (async () => {
+      await primeCache();
+      if (await isCacheStale()) refreshProductCache();
+    })();
+    const onOnline = async () => {
+      const synced = await syncQueue();
+      if (synced > 0) toast.success(`Synced ${synced} offline order${synced === 1 ? "" : "s"}`);
+    };
+    window.addEventListener("online", onOnline);
+    onOnline();
+    return () => window.removeEventListener("online", onOnline);
+  }, []);
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <I18nProvider>
         <AuthProvider>
           <CartProvider>
+            <Bootstrap />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
@@ -35,6 +59,7 @@ const App = () => (
             </Routes>
           </CartProvider>
         </AuthProvider>
+        </I18nProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

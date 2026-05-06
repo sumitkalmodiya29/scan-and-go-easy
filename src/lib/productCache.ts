@@ -1,23 +1,23 @@
+// Thin wrapper around the IndexedDB cache for product catalog.
+// Falls back to localStorage-free pure IDB. Same shape as before so callers don't change much.
 import { supabase } from "@/integrations/supabase/client";
+import {
+  CachedProduct,
+  idbGetProducts,
+  idbSaveProducts,
+  idbProductsStale,
+} from "./db";
 
-export interface CachedProduct {
-  id: string;
-  barcode: string;
-  name: string;
-  price: number;
-  size: string | null;
-  stock: number;
-}
+export type { CachedProduct };
 
-const KEY = "scango.products.v1";
-const TS_KEY = "scango.products.ts";
-const TTL = 1000 * 60 * 30; // 30 min
+let memCache: CachedProduct[] | null = null;
 
-export const getCachedProducts = (): CachedProduct[] => {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+export const getCachedProducts = (): CachedProduct[] => memCache ?? [];
+
+export const primeCache = async () => {
+  if (memCache) return memCache;
+  memCache = await idbGetProducts();
+  return memCache;
 };
 
 export const refreshProductCache = async (): Promise<CachedProduct[]> => {
@@ -25,26 +25,20 @@ export const refreshProductCache = async (): Promise<CachedProduct[]> => {
     .from("products")
     .select("id, barcode, name, price, size, stock");
   if (data) {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(data));
-      localStorage.setItem(TS_KEY, String(Date.now()));
-    } catch { /* noop */ }
-    return data as CachedProduct[];
+    memCache = data as CachedProduct[];
+    await idbSaveProducts(memCache);
+    return memCache;
   }
-  return getCachedProducts();
+  return memCache ?? (await primeCache());
 };
 
-export const isCacheStale = () => {
-  const ts = Number(localStorage.getItem(TS_KEY) ?? 0);
-  return !ts || Date.now() - ts > TTL;
-};
+export const isCacheStale = async () => idbProductsStale();
 
 export const lookupByBarcode = async (barcode: string): Promise<CachedProduct | null> => {
   const code = barcode.trim();
-  // Try cache first for instant feel
-  const cached = getCachedProducts().find((p) => p.barcode === code);
+  if (!memCache) await primeCache();
+  const cached = (memCache ?? []).find((p) => p.barcode === code);
   if (cached) return cached;
-  // Network fallback
   if (!navigator.onLine) return null;
   const { data } = await supabase
     .from("products")
