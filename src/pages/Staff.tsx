@@ -10,6 +10,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { QrCode, CheckCircle2, XCircle, ShieldCheck, Clock, Search } from "lucide-react";
+import { successChime, errorBuzz, beep } from "@/lib/sound";
+import { requestNotifPermission, notify } from "@/lib/notifications";
 
 interface OrderRow {
   id: string;
@@ -40,6 +42,7 @@ const Staff = () => {
   const lockRef = useRef(false);
 
   useEffect(() => {
+    requestNotifPermission();
     const load = async () => {
       const { data } = await supabase
         .from("orders")
@@ -52,7 +55,13 @@ const Staff = () => {
 
     const ch = supabase
       .channel("staff-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (p) => {
+        const o = p.new as OrderRow;
+        beep(660, 0.1, "triangle", 0.15);
+        notify("New Exit Pending", `Order #${o.id.slice(0,8).toUpperCase()} • ₹${Number(o.total).toFixed(2)}`, `order-${o.id}`);
+        load();
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders" }, load)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, []);
@@ -79,13 +88,14 @@ const Staff = () => {
 
   const processQr = async (raw: string) => {
     let payload: { order_id?: string; token?: string };
-    try { payload = JSON.parse(raw); } catch { toast.error("Invalid QR"); return; }
-    if (!payload.order_id || !payload.token) { toast.error("Invalid QR payload"); return; }
+    try { payload = JSON.parse(raw); } catch { errorBuzz(); toast.error("Invalid QR"); return; }
+    if (!payload.order_id || !payload.token) { errorBuzz(); toast.error("Invalid QR payload"); return; }
 
     const { data: o, error } = await supabase
       .from("orders").select("*").eq("id", payload.order_id).maybeSingle();
-    if (error || !o) { toast.error("Order not found"); return; }
-    if (o.qr_token !== payload.token) { toast.error("QR token mismatch"); return; }
+    if (error || !o) { errorBuzz(); toast.error("Order not found"); return; }
+    if (o.qr_token !== payload.token) { errorBuzz(); toast.error("QR token mismatch"); return; }
+    successChime();
     const { data: it } = await supabase.from("order_items").select("*").eq("order_id", o.id);
     setOrder(o as OrderRow);
     setItems((it as ItemRow[]) ?? []);
