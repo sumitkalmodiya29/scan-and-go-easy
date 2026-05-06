@@ -82,18 +82,22 @@ const Receipt = () => {
   };
 
   return (
-    <AppLayout title="Exit Pass">
+    <AppLayout title={t("receipt")}>
       <div className="max-w-md mx-auto space-y-4">
         <Link to="/shop" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground tappable">
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back to shop
+          <ArrowLeft className="h-4 w-4 mr-1" /> {t("backToShop")}
         </Link>
 
-        <Card className="p-6 shadow-elegant gradient-card text-center animate-float-in">
+        <Card className="p-6 glass-strong shadow-elegant border-0 text-center animate-float-in">
           <div className="flex items-center justify-center gap-2 mb-1 text-success">
             <CheckCircle2 className="h-5 w-5" />
-            <span className="font-semibold">Payment Successful</span>
+            <span className="font-semibold">{t("paymentSuccessful")}</span>
           </div>
-          <p className="text-xs text-muted-foreground mb-4">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+          <p className="text-xs text-muted-foreground mb-3">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+
+          <div className="mb-4 flex justify-center">
+            <TrustBadges />
+          </div>
 
           <div className="relative inline-block">
             {!verified && !expired && (
@@ -109,13 +113,13 @@ const Receipt = () => {
               {verified ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-success">
                   <ShieldCheck className="h-16 w-16 mb-2 animate-pulse-glow rounded-full" />
-                  <p className="font-semibold">Verified</p>
-                  <p className="text-xs text-muted-foreground">Exit approved</p>
+                  <p className="font-semibold">{t("verified")}</p>
+                  <p className="text-xs text-muted-foreground">{t("exitApproved")}</p>
                 </div>
               ) : expired ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-destructive">
                   <Clock className="h-16 w-16 mb-2" />
-                  <p className="font-semibold">QR Expired</p>
+                  <p className="font-semibold">{t("qrExpired")}</p>
                   <Button size="sm" variant="outline" className="mt-2 tappable" onClick={() => navigate("/oops?reason=expired")}>What now?</Button>
                 </div>
               ) : (
@@ -133,16 +137,16 @@ const Receipt = () => {
                 <span className="font-mono font-semibold text-lg">
                   {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
                 </span>
-                <span className="text-muted-foreground">remaining</span>
+                <span className="text-muted-foreground">{t("remaining")}</span>
               </div>
-              <p className="text-xs text-muted-foreground">Show this QR at the exit. One-time use.</p>
+              <p className="text-xs text-muted-foreground">{t("showQr")}</p>
             </div>
           )}
 
-          {verified && <Badge className="mt-3 bg-success text-success-foreground">Checked Out</Badge>}
+          {verified && <Badge className="mt-3 bg-success text-success-foreground">{t("checkedOut")}</Badge>}
         </Card>
 
-        <Card className="p-4 shadow-soft">
+        <Card className="p-4 glass shadow-soft border-0">
           <h3 className="font-semibold mb-3">Items ({items.reduce((s, i) => s + i.quantity, 0)})</h3>
           <div className="space-y-2">
             {items.map((i) => (
@@ -155,18 +159,18 @@ const Receipt = () => {
               </div>
             ))}
           </div>
-          <div className="border-t mt-3 pt-3 flex justify-between font-bold">
-            <span>Total Paid</span>
+          <div className="border-t border-white/10 mt-3 pt-3 flex justify-between font-bold">
+            <span>{t("total")}</span>
             <span>₹{Number(order.total).toFixed(2)}</span>
           </div>
         </Card>
 
-        <Button onClick={downloadPdf} className="w-full gradient-amber text-accent-foreground border-0 shadow-amber tappable" size="lg">
-          <Download className="h-4 w-4 mr-2" /> Download PDF Receipt
+        <Button onClick={downloadPdf} className="w-full gradient-amber text-accent-foreground border-0 shadow-amber tappable font-semibold" size="lg">
+          <Download className="h-4 w-4 mr-2" /> {t("downloadPdf")}
         </Button>
 
         <Button asChild variant="outline" className="w-full tappable">
-          <Link to="/shop">Start new shopping trip</Link>
+          <Link to="/shop">{t("newTrip")}</Link>
         </Button>
       </div>
     </AppLayout>
