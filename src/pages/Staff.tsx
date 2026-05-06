@@ -88,13 +88,14 @@ const Staff = () => {
 
   const processQr = async (raw: string) => {
     let payload: { order_id?: string; token?: string };
-    try { payload = JSON.parse(raw); } catch { toast.error("Invalid QR"); return; }
-    if (!payload.order_id || !payload.token) { toast.error("Invalid QR payload"); return; }
+    try { payload = JSON.parse(raw); } catch { errorBuzz(); toast.error("Invalid QR"); return; }
+    if (!payload.order_id || !payload.token) { errorBuzz(); toast.error("Invalid QR payload"); return; }
 
     const { data: o, error } = await supabase
       .from("orders").select("*").eq("id", payload.order_id).maybeSingle();
-    if (error || !o) { toast.error("Order not found"); return; }
-    if (o.qr_token !== payload.token) { toast.error("QR token mismatch"); return; }
+    if (error || !o) { errorBuzz(); toast.error("Order not found"); return; }
+    if (o.qr_token !== payload.token) { errorBuzz(); toast.error("QR token mismatch"); return; }
+    successChime();
     const { data: it } = await supabase.from("order_items").select("*").eq("order_id", o.id);
     setOrder(o as OrderRow);
     setItems((it as ItemRow[]) ?? []);
