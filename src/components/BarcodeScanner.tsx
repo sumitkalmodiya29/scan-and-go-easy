@@ -20,8 +20,19 @@ export const BarcodeScanner = ({ onScan, onError }: Props) => {
 
     scanner
       .start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 260, height: 160 } },
+        { facingMode: { ideal: "environment" } },
+        {
+          fps: 12,
+          qrbox: { width: 280, height: 180 },
+          aspectRatio: 1.333,
+          videoConstraints: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            // @ts-expect-error advanced constraints
+            advanced: [{ focusMode: "continuous" }, { exposureMode: "continuous" }, { whiteBalanceMode: "continuous" }],
+          } as MediaTrackConstraints,
+        },
         (decoded) => {
           if (lockRef.current) return;
           lockRef.current = true;
