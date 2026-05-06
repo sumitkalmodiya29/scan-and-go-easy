@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock, ShieldCheck, ArrowLeft, Download } from "lucide-react";
 import { generateReceiptPDF } from "@/lib/receiptPdf";
+import { TrustBadges } from "@/components/TrustBadges";
+import { useT } from "@/lib/i18n";
 
 interface Order {
   id: string; total: number; status: string;
@@ -19,6 +21,7 @@ interface Item { id: string; name: string; price: number; quantity: number; size
 const Receipt = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useT();
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [now, setNow] = useState(Date.now());
