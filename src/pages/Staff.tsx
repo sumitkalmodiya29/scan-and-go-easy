@@ -42,6 +42,7 @@ const Staff = () => {
   const lockRef = useRef(false);
 
   useEffect(() => {
+    requestNotifPermission();
     const load = async () => {
       const { data } = await supabase
         .from("orders")
@@ -54,7 +55,13 @@ const Staff = () => {
 
     const ch = supabase
       .channel("staff-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (p) => {
+        const o = p.new as OrderRow;
+        beep(660, 0.1, "triangle", 0.15);
+        notify("New Exit Pending", `Order #${o.id.slice(0,8).toUpperCase()} • ₹${Number(o.total).toFixed(2)}`, `order-${o.id}`);
+        load();
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders" }, load)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, []);
