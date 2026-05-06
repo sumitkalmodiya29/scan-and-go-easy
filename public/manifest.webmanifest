@@ -1,0 +1,12 @@
+{
+  "name": "ScanGo - Self Checkout",
+  "short_name": "ScanGo",
+  "description": "Scan, pay, and walk out — premium self-checkout for retail.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0c2e",
+  "theme_color": "#2a1f8a",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "any", "type": "image/x-icon" }
+  ]
+}
