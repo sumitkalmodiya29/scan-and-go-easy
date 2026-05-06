@@ -11,6 +11,7 @@ import Auth from "./pages/Auth.tsx";
 import Shop from "./pages/Shop.tsx";
 import Receipt from "./pages/Receipt.tsx";
 import Staff from "./pages/Staff.tsx";
+import Oops from "./pages/Oops.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
               <Route path="/shop" element={<RequireAuth role="customer"><Shop /></RequireAuth>} />
               <Route path="/receipt/:id" element={<RequireAuth><Receipt /></RequireAuth>} />
               <Route path="/staff" element={<RequireAuth role={["staff", "admin"]}><Staff /></RequireAuth>} />
+              <Route path="/oops" element={<Oops />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </CartProvider>
