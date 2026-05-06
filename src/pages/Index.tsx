@@ -62,7 +62,7 @@ const Index = () => {
             { icon: QrCode, title: "Pay & get QR", text: "Mock UPI/card checkout instantly generates a secure exit pass." },
             { icon: Clock, title: "10-min, one-time", text: "QR expires in 10 minutes and works only once at the exit." },
           ].map((f) => (
-            <Card key={f.title} className="p-6 shadow-soft hover:shadow-elegant transition-smooth">
+            <Card key={f.title} className="p-6 glass shadow-soft hover:shadow-elegant transition-smooth border-0 tappable-lift">
               <div className="h-10 w-10 rounded-lg gradient-primary flex items-center justify-center mb-4">
                 <f.icon className="h-5 w-5 text-primary-foreground" />
               </div>
