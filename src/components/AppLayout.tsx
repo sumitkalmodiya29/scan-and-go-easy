@@ -2,9 +2,10 @@ import { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { ScanLine, LogOut } from "lucide-react";
+import { ScanLine, LogOut, Settings as SettingsIcon } from "lucide-react";
 import { LanguageToggle } from "./LanguageToggle";
 import { OfflineBadge } from "./OfflineBadge";
+import { Footer } from "./Footer";
 import { useT } from "@/lib/i18n";
 
 export const AppLayout = ({ children, title }: { children: ReactNode; title?: string }) => {
@@ -23,6 +24,9 @@ export const AppLayout = ({ children, title }: { children: ReactNode; title?: st
           <div className="flex items-center gap-2">
             <OfflineBadge />
             <LanguageToggle />
+            <Button variant="ghost" size="icon" className="tappable h-8 w-8" onClick={() => navigate("/settings")} aria-label={t("settings")} title={t("settings")}>
+              <SettingsIcon className="h-4 w-4" />
+            </Button>
             <Button variant="ghost" size="sm" className="tappable" onClick={async () => { await signOut(); navigate("/auth"); }}>
               <LogOut className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">{t("signOut")}</span>
             </Button>
@@ -30,6 +34,7 @@ export const AppLayout = ({ children, title }: { children: ReactNode; title?: st
         </div>
       </header>
       <main className="container py-6">{children}</main>
+      <Footer />
     </div>
   );
 };

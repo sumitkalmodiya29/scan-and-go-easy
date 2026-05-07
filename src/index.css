@@ -78,6 +78,7 @@
   html, body { background: hsl(var(--background)); }
   body {
     @apply text-foreground antialiased;
+    font-family: 'Inter', 'Noto Sans Devanagari', system-ui, -apple-system, sans-serif;
     font-feature-settings: "cv11", "ss01";
     background-image:
       radial-gradient(60% 40% at 50% -10%, hsl(158 75% 30% / 0.18) 0%, transparent 60%),
@@ -144,3 +145,42 @@
   background-size: 200% 100%;
   animation: shimmer 3s linear infinite;
 }
+
+/* AR Scanner — laser sweep + corner brackets */
+@keyframes laserSweep {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+.ar-laser {
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.9), hsl(var(--accent) / 0.9), transparent);
+  box-shadow: 0 0 14px hsl(var(--primary) / 0.8), 0 0 28px hsl(var(--accent) / 0.5);
+  animation: laserSweep 2.2s ease-in-out infinite;
+}
+.ar-grid {
+  background-image:
+    linear-gradient(hsl(var(--primary) / 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--primary) / 0.18) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+.ar-corner {
+  position: absolute; width: 26px; height: 26px;
+  border-color: hsl(var(--accent));
+  filter: drop-shadow(0 0 6px hsl(var(--accent) / 0.7));
+}
+
+/* Holographic pulse for QR while waiting verification */
+@keyframes holoPulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.55), 0 0 40px 0 hsl(var(--accent) / 0.25) inset; }
+  50% { box-shadow: 0 0 0 18px hsl(var(--primary) / 0), 0 0 60px 6px hsl(var(--accent) / 0.35) inset; }
+}
+.holo-ring { animation: holoPulse 2.4s ease-out infinite; border-radius: 1.25rem; }
+@keyframes verifiedFlash {
+  0% { box-shadow: 0 0 0 0 hsl(var(--success) / 0.0); }
+  40% { box-shadow: 0 0 0 24px hsl(var(--success) / 0.55); }
+  100% { box-shadow: 0 0 0 60px hsl(var(--success) / 0); }
+}
+.holo-verified { animation: verifiedFlash 1.4s ease-out 1; }
