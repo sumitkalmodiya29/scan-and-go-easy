@@ -6,17 +6,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/AppLayout";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { TrustBadges } from "@/components/TrustBadges";
+import { VoiceSearch } from "@/components/VoiceSearch";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Camera, ShoppingBag, Trash2, Plus, Minus, CreditCard, Loader2, Sparkles, TrendingUp, Receipt as ReceiptIcon, AlertTriangle } from "lucide-react";
+import { Camera, ShoppingBag, Trash2, Plus, Minus, CreditCard, Loader2, Sparkles, TrendingUp, Receipt as ReceiptIcon, AlertTriangle, Wallet } from "lucide-react";
 import { lookupByBarcode, getCachedProducts } from "@/lib/productCache";
 import { requestNotifPermission, notify } from "@/lib/notifications";
 import { successChime, errorBuzz } from "@/lib/sound";
 import { useT } from "@/lib/i18n";
 import { queueAdd } from "@/lib/db";
+import { loadSettings } from "@/lib/settings";
 
 interface RecentOrder { id: string; total: number; created_at: string; status: string; }
 
@@ -29,8 +32,9 @@ const Shop = () => {
   const [paying, setPaying] = useState(false);
   const [recent, setRecent] = useState<RecentOrder[]>([]);
   const [profileName, setProfileName] = useState<string>("");
+  const [budgetLimit, setBudgetLimit] = useState(0);
 
-  useEffect(() => { requestNotifPermission(); }, []);
+  useEffect(() => { requestNotifPermission(); loadSettings().then((s) => setBudgetLimit(s.budgetLimit)); }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -175,11 +179,19 @@ const Shop = () => {
 
       <div className="grid lg:grid-cols-2 gap-6">
         <Card className="p-4 glass shadow-soft border-0">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 gap-2">
             <h2 className="font-semibold flex items-center gap-2"><Camera className="h-4 w-4 text-emerald" /> {t("scanProducts")}</h2>
-            <Button size="sm" variant={scanning ? "secondary" : "default"} className="tappable" onClick={() => setScanning((s) => !s)}>
-              {scanning ? t("stopScanner") : t("startScanner")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <VoiceSearch onResult={(text) => {
+                const q = text.toLowerCase().trim();
+                const match = getCachedProducts().find(p => p.name.toLowerCase().includes(q) || p.barcode.includes(q));
+                if (match) handleScan(match.barcode);
+                else { errorBuzz(); toast.error(`No product matches "${text}"`); }
+              }} />
+              <Button size="sm" variant={scanning ? "secondary" : "default"} className="tappable" onClick={() => setScanning((s) => !s)}>
+                {scanning ? t("stopScanner") : t("startScanner")}
+              </Button>
+            </div>
           </div>
           {scanning ? (
             <BarcodeScanner onScan={handleScan} onError={(e) => toast.error(e)} />
@@ -246,6 +258,24 @@ const Shop = () => {
               <span className="text-muted-foreground">{t("total")}</span>
               <span className="font-bold">₹{total.toFixed(2)}</span>
             </div>
+            {budgetLimit > 0 && (() => {
+              const pct = Math.min(100, (total / budgetLimit) * 100);
+              const over = total > budgetLimit;
+              const near = !over && pct >= 80;
+              return (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-1 text-muted-foreground"><Wallet className="h-3 w-3 text-gold" /> {t("budgetTracker")}</span>
+                    <span className={`font-mono font-semibold ${over ? "text-destructive" : near ? "text-warning" : "text-emerald"}`}>
+                      ₹{total.toFixed(0)} / ₹{budgetLimit}
+                    </span>
+                  </div>
+                  <Progress value={pct} className={over ? "[&>div]:bg-destructive" : near ? "[&>div]:bg-warning" : "[&>div]:bg-primary"} />
+                  {over && <p className="text-xs text-destructive flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> {t("overBudget")}</p>}
+                  {near && <p className="text-xs text-warning flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> {t("nearBudget")}</p>}
+                </div>
+              );
+            })()}
             <TrustBadges compact />
             <Button className="w-full gradient-primary text-primary-foreground border-0 shadow-elegant tappable font-semibold" size="lg" disabled={items.length === 0 || paying} onClick={handlePay}>
               {paying ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("processingPayment")}</> : <><CreditCard className="h-4 w-4 mr-2" /> {t("payNow")}</>}
