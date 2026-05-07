@@ -49,10 +49,23 @@ export const BarcodeScanner = ({ onScan, onError }: Props) => {
   }, [onScan, onError]);
 
   return (
-    <div className="relative overflow-hidden rounded-xl border bg-black">
+    <div className="relative overflow-hidden rounded-xl border border-primary/30 bg-black shadow-elegant">
       <div ref={ref} className="w-full aspect-[4/3]" />
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div className="w-[260px] h-[160px] border-2 border-primary-glow/80 rounded-lg shadow-glow" />
+      {/* AR overlay */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 ar-grid opacity-40" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative w-[260px] h-[170px] rounded-lg border border-primary/60 shadow-glow overflow-hidden">
+            <div className="ar-laser" />
+            <span className="ar-corner border-t-2 border-l-2 top-0 left-0 rounded-tl-md" />
+            <span className="ar-corner border-t-2 border-r-2 top-0 right-0 rounded-tr-md" />
+            <span className="ar-corner border-b-2 border-l-2 bottom-0 left-0 rounded-bl-md" />
+            <span className="ar-corner border-b-2 border-r-2 bottom-0 right-0 rounded-br-md" />
+          </div>
+        </div>
+        <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-full glass text-[10px] uppercase tracking-widest text-emerald">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald animate-pulse" /> AR · SCAN
+        </div>
       </div>
     </div>
   );

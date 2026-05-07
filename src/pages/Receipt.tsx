@@ -109,7 +109,7 @@ const Receipt = () => {
                   style={{ transition: "stroke-dashoffset 1s linear, stroke 0.5s" }} />
               </svg>
             )}
-            <div className="bg-white rounded-2xl p-4 inline-block shadow-soft border" style={{ width: size, height: size }}>
+            <div className={`bg-white rounded-2xl p-4 inline-block shadow-soft border ${verified ? "holo-verified" : !expired ? "holo-ring" : ""}`} style={{ width: size, height: size }}>
               {verified ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-success">
                   <ShieldCheck className="h-16 w-16 mb-2 animate-pulse-glow rounded-full" />
@@ -129,6 +129,9 @@ const Receipt = () => {
               )}
             </div>
           </div>
+          {!verified && !expired && (
+            <p className="text-[10px] uppercase tracking-widest text-emerald mt-2">{t("holoVerifying")}</p>
+          )}
 
           {!verified && !expired && (
             <div className="mt-4 space-y-2">
