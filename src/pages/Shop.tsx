@@ -6,17 +6,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/AppLayout";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { TrustBadges } from "@/components/TrustBadges";
+import { VoiceSearch } from "@/components/VoiceSearch";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Camera, ShoppingBag, Trash2, Plus, Minus, CreditCard, Loader2, Sparkles, TrendingUp, Receipt as ReceiptIcon, AlertTriangle } from "lucide-react";
+import { Camera, ShoppingBag, Trash2, Plus, Minus, CreditCard, Loader2, Sparkles, TrendingUp, Receipt as ReceiptIcon, AlertTriangle, Wallet } from "lucide-react";
 import { lookupByBarcode, getCachedProducts } from "@/lib/productCache";
 import { requestNotifPermission, notify } from "@/lib/notifications";
 import { successChime, errorBuzz } from "@/lib/sound";
 import { useT } from "@/lib/i18n";
 import { queueAdd } from "@/lib/db";
+import { loadSettings } from "@/lib/settings";
 
 interface RecentOrder { id: string; total: number; created_at: string; status: string; }
 
@@ -29,8 +32,9 @@ const Shop = () => {
   const [paying, setPaying] = useState(false);
   const [recent, setRecent] = useState<RecentOrder[]>([]);
   const [profileName, setProfileName] = useState<string>("");
+  const [budgetLimit, setBudgetLimit] = useState(0);
 
-  useEffect(() => { requestNotifPermission(); }, []);
+  useEffect(() => { requestNotifPermission(); loadSettings().then((s) => setBudgetLimit(s.budgetLimit)); }, []);
 
   useEffect(() => {
     if (!user) return;
