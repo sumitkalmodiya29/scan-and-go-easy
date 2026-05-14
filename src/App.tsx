@@ -18,6 +18,10 @@ import Receipt from "./pages/Receipt.tsx";
 import Staff from "./pages/Staff.tsx";
 import Oops from "./pages/Oops.tsx";
 import Settings from "./pages/Settings.tsx";
+import Welcome from "./pages/Welcome.tsx";
+import Home from "./pages/Home.tsx";
+import Orders from "./pages/Orders.tsx";
+import Wallet from "./pages/Wallet.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -51,7 +55,11 @@ const App = () => (
             <Bootstrap />
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/welcome" element={<Welcome />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/home" element={<RequireAuth role="customer"><Home /></RequireAuth>} />
+              <Route path="/orders" element={<RequireAuth role="customer"><Orders /></RequireAuth>} />
+              <Route path="/wallet" element={<RequireAuth role="customer"><Wallet /></RequireAuth>} />
               <Route path="/shop" element={<RequireAuth role="customer"><Shop /></RequireAuth>} />
               <Route path="/receipt/:id" element={<RequireAuth><Receipt /></RequireAuth>} />
               <Route path="/staff" element={<RequireAuth role={["staff", "admin"]}><Staff /></RequireAuth>} />
