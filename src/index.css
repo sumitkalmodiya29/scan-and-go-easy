@@ -184,3 +184,17 @@
   100% { box-shadow: 0 0 0 60px hsl(var(--success) / 0); }
 }
 .holo-verified { animation: verifiedFlash 1.4s ease-out 1; }
+
+/* iOS-style splash + page transitions */
+@keyframes splashPop {
+  0% { opacity: 0; transform: scale(0.7); filter: blur(8px); }
+  60% { opacity: 1; transform: scale(1.04); filter: blur(0); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.splash-pop { animation: splashPop 1.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes pageSlide {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.page-slide { animation: pageSlide 0.35s cubic-bezier(0.32, 0.72, 0, 1) both; }

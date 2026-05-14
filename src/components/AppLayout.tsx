@@ -16,7 +16,7 @@ export const AppLayout = ({ children, title }: { children: ReactNode; title?: st
     <div className="min-h-screen">
       <header className="sticky top-0 z-40 glass border-b border-white/10">
         <div className="container flex h-14 items-center justify-between gap-2">
-          <Link to={role === "staff" ? "/staff" : "/shop"} className="flex items-center gap-2 font-bold">
+          <Link to={role === "staff" ? "/staff" : "/home"} className="flex items-center gap-2 font-bold">
             <ScanLine className="h-5 w-5 text-emerald" />
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">ScanGo</span>
             {title && <span className="text-muted-foreground font-normal hidden sm:inline">/ {title}</span>}

@@ -16,7 +16,7 @@ export const RequireAuth = ({ children, role }: { children: ReactNode; role?: Ap
   if (role) {
     const allowed = Array.isArray(role) ? role : [role];
     if (userRole && !allowed.includes(userRole)) {
-      return <Navigate to={userRole === "staff" || userRole === "admin" ? "/staff" : "/shop"} replace />;
+      return <Navigate to={userRole === "staff" || userRole === "admin" ? "/staff" : "/home"} replace />;
     }
   }
   return <>{children}</>;

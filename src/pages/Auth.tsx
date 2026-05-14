@@ -33,7 +33,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (!loading && user && role) {
-      navigate(role === "customer" ? "/shop" : "/staff", { replace: true });
+      navigate(role === "customer" ? "/home" : "/staff", { replace: true });
     }
   }, [user, role, loading, navigate]);
 
