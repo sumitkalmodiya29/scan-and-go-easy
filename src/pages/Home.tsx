@@ -6,6 +6,7 @@ import { ScanLine, Sparkles, TrendingUp, Crown } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { OfflineBadge } from "@/components/OfflineBadge";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { NamasteWelcome } from "@/components/NamasteWelcome";
 
 const greeting = () => {
   const h = new Date().getHours();
