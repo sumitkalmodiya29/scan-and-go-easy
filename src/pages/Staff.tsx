@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { QrCode, CheckCircle2, XCircle, ShieldCheck, Clock, Search } from "lucide-react";
+import { QrCode, CheckCircle2, XCircle, ShieldCheck, Clock, Search, Banknote, CreditCard } from "lucide-react";
 import { successChime, errorBuzz, beep } from "@/lib/sound";
 import { requestNotifPermission, notify } from "@/lib/notifications";
 
