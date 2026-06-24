@@ -72,16 +72,20 @@ const Shop = () => {
     }
   };
 
-  const handlePay = async () => {
+  const handlePay = async (method: "digital" | "cash") => {
     if (!user || items.length === 0) return;
+    setPayOpen(false);
     setPaying(true);
-    await new Promise((r) => setTimeout(r, 700));
+    await new Promise((r) => setTimeout(r, 500));
 
     const qrToken = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const status = method === "cash" ? "pending" : "paid";
+    // Smart counter allocation: pseudo-random aisle 1..5 for demo
+    const counterNo = method === "cash" ? ((Math.floor(Math.random() * 5)) + 1) : null;
 
-    // Offline path → enqueue
-    if (!navigator.onLine) {
+    // Offline path → enqueue (digital only — cash needs live counter staff)
+    if (!navigator.onLine && method === "digital") {
       const localId = crypto.randomUUID();
       await queueAdd({
         local_id: localId,
@@ -107,7 +111,10 @@ const Shop = () => {
 
     const { data: order, error } = await supabase
       .from("orders")
-      .insert({ user_id: user.id, total, status: "paid", qr_token: qrToken, expires_at: expiresAt })
+      .insert({
+        user_id: user.id, total, status, qr_token: qrToken, expires_at: expiresAt,
+        payment_method: method, counter_no: counterNo,
+      })
       .select().single();
 
     if (error || !order) {
@@ -132,8 +139,13 @@ const Shop = () => {
     clear();
     setPaying(false);
     successChime();
-    notify("Payment Successful ✓", `₹${total.toFixed(2)} paid. Show your QR at exit.`, "scango-pay");
-    toast.success("Payment successful!");
+    if (method === "cash") {
+      notify("Cash Pending Settlement", `₹${total.toFixed(2)} — show QR at exit counter`, "scango-cash");
+      toast.success("Cash QR generated — proceed to exit counter");
+    } else {
+      notify("Payment Successful ✓", `₹${total.toFixed(2)} paid. Show your QR at exit.`, "scango-pay");
+      toast.success("Payment successful!");
+    }
     navigate(`/receipt/${order.id}`);
   };
 
