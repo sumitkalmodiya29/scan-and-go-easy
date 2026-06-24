@@ -59,6 +59,7 @@ const Receipt = () => {
   const mins = Math.max(0, Math.floor(expiresMs / 60000));
   const secs = Math.max(0, Math.floor((expiresMs % 60000) / 1000));
   const pct = Math.max(0, Math.min(1, expiresMs / TOTAL_MS));
+  const isCash = (order.payment_method ?? "digital") === "cash";
 
   if (expired && !verified) {
     // Soft redirect option to oops, but keep page so customer sees status
