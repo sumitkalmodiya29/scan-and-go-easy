@@ -6,7 +6,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, ShieldCheck, ArrowLeft, Download } from "lucide-react";
+import { CheckCircle2, Clock, ShieldCheck, ArrowLeft, Download, Banknote, MapPin } from "lucide-react";
 import { generateReceiptPDF } from "@/lib/receiptPdf";
 import { TrustBadges } from "@/components/TrustBadges";
 import { useT } from "@/lib/i18n";
@@ -15,6 +15,8 @@ interface Order {
   id: string; total: number; status: string;
   qr_token: string; expires_at: string; verified_at: string | null;
   created_at: string;
+  payment_method?: string | null;
+  counter_no?: number | null;
 }
 interface Item { id: string; name: string; price: number; quantity: number; size: string | null; }
 
