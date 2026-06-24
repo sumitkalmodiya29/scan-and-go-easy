@@ -21,6 +21,8 @@ interface OrderRow {
   expires_at: string;
   verified_at: string | null;
   created_at: string;
+  payment_method?: string | null;
+  counter_no?: number | null;
 }
 interface ItemRow {
   id: string;
