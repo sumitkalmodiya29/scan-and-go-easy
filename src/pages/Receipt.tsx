@@ -90,12 +90,31 @@ const Receipt = () => {
           <ArrowLeft className="h-4 w-4 mr-1" /> {t("backToShop")}
         </Link>
 
-        <Card className="p-6 glass-strong shadow-elegant border-0 text-center animate-float-in">
-          <div className="flex items-center justify-center gap-2 mb-1 text-success">
-            <CheckCircle2 className="h-5 w-5" />
-            <span className="font-semibold">{t("paymentSuccessful")}</span>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+        <Card className={`p-6 glass-strong shadow-elegant border-0 text-center animate-float-in ${isCash && !verified ? "ring-2 ring-accent/60 shadow-amber" : ""}`}>
+          {isCash && !verified ? (
+            <>
+              <div className="flex items-center justify-center gap-2 mb-1 text-gold">
+                <Banknote className="h-5 w-5" />
+                <span className="font-semibold">{t("cashPendingTitle")}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-2">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+              <p className="text-xs text-muted-foreground mb-1">{t("cashAmountDue")}</p>
+              <p className="text-3xl font-bold text-gold mb-2">₹{Number(order.total).toFixed(2)}</p>
+              {order.counter_no && (
+                <div className="inline-flex items-center gap-1.5 mb-3 px-3 py-1.5 rounded-full glass border border-accent/40 text-xs text-gold">
+                  <MapPin className="h-3 w-3" /> Aisle {order.counter_no} {t("shortestQueue")}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-center gap-2 mb-1 text-success">
+                <CheckCircle2 className="h-5 w-5" />
+                <span className="font-semibold">{t("paymentSuccessful")}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+            </>
+          )}
 
           <div className="mb-4 flex justify-center">
             <TrustBadges />
