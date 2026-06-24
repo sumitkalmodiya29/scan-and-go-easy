@@ -257,23 +257,36 @@ const Staff = () => {
               {recent.map((o) => {
                 const isCompleted = o.status === "completed" || o.status === "verified";
                 const isExpired = !isCompleted && new Date(o.expires_at).getTime() < Date.now();
+                const isCash = (o.payment_method ?? "digital") === "cash";
                 return (
                   <div
                     key={o.id}
-                    className="flex items-center justify-between gap-2 p-3 rounded-lg border bg-card hover:border-primary/40 transition-colors"
+                    className={`flex items-center justify-between gap-2 p-3 rounded-lg border bg-card hover:border-primary/40 transition-colors ${isCash && !isCompleted ? "border-accent/50" : ""}`}
                   >
                     <button
                       type="button"
                       onClick={() => loadOrderById(o.id)}
                       className="flex-1 text-left"
                     >
-                      <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8).toUpperCase()}</p>
+                      <p className="font-mono text-xs text-muted-foreground flex items-center gap-1">
+                        #{o.id.slice(0, 8).toUpperCase()}
+                        {isCash && !isCompleted && <Banknote className="h-3 w-3 text-gold" />}
+                        {isCash && !isCompleted && o.counter_no && <span className="text-gold">Aisle {o.counter_no}</span>}
+                      </p>
                       <p className="text-sm">₹{Number(o.total).toFixed(2)} • {new Date(o.created_at).toLocaleTimeString()}</p>
                     </button>
                     {isCompleted ? (
                       <Badge className="bg-success text-success-foreground">Completed</Badge>
                     ) : isExpired ? (
                       <Badge variant="destructive">Expired</Badge>
+                    ) : isCash ? (
+                      <Button
+                        size="sm"
+                        className="bg-accent text-accent-foreground hover:bg-accent/90 border-0"
+                        onClick={(e) => { e.stopPropagation(); completeOrder(o.id); }}
+                      >
+                        <Banknote className="h-3 w-3 mr-1" /> Cash & Approve
+                      </Button>
                     ) : (
                       <Button
                         size="sm"
