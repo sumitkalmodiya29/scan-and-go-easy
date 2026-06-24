@@ -291,12 +291,56 @@ const Shop = () => {
               );
             })()}
             <TrustBadges compact />
-            <Button className="w-full gradient-primary text-primary-foreground border-0 shadow-elegant tappable font-semibold" size="lg" disabled={items.length === 0 || paying} onClick={handlePay}>
+            <Button className="w-full gradient-primary text-primary-foreground border-0 shadow-elegant tappable font-semibold" size="lg" disabled={items.length === 0 || paying} onClick={() => setPayOpen(true)}>
               {paying ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("processingPayment")}</> : <><CreditCard className="h-4 w-4 mr-2" /> {t("payNow")}</>}
             </Button>
           </div>
         </Card>
       </div>
+
+      {/* Payment method dialog: Digital vs Cash-at-counter */}
+      <Dialog open={payOpen} onOpenChange={setPayOpen}>
+        <DialogContent className="glass-strong border-white/10 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-emerald" /> {t("choosePayment")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("total")}: <span className="font-bold text-foreground">₹{total.toFixed(2)}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 mt-2">
+            <button
+              onClick={() => handlePay("digital")}
+              className="text-left p-4 rounded-2xl glass tappable-lift border border-primary/30 hover:border-primary/60 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl gradient-primary grid place-items-center text-primary-foreground shadow-glow">
+                  <CreditCard className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">{t("payDigital")}</p>
+                  <p className="text-xs text-muted-foreground">{t("payDigitalDesc")}</p>
+                </div>
+              </div>
+            </button>
+            <button
+              onClick={() => handlePay("cash")}
+              className="text-left p-4 rounded-2xl glass tappable-lift border border-accent/40 hover:border-accent/70 transition-colors shadow-amber/40"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl gradient-amber grid place-items-center text-accent-foreground shadow-amber">
+                  <Banknote className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-gold">{t("payCash")}</p>
+                  <p className="text-xs text-muted-foreground">{t("payCashDesc")}</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };
