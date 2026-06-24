@@ -164,7 +164,11 @@ const Receipt = () => {
                 </span>
                 <span className="text-muted-foreground">{t("remaining")}</span>
               </div>
-              <p className="text-xs text-muted-foreground">{t("showQr")}</p>
+              {isCash ? (
+                <p className="text-xs text-muted-foreground px-2">{t("cashPendingInstructions")}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t("showQr")}</p>
+              )}
             </div>
           )}
 
