@@ -39,6 +39,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen pb-32 page-slide">
+      <NamasteWelcome />
       {/* Header */}
       <header className="px-5 pt-8 pb-4 flex items-center justify-between">
         <div>
