@@ -34,6 +34,7 @@ const Shop = () => {
   const [recent, setRecent] = useState<RecentOrder[]>([]);
   const [profileName, setProfileName] = useState<string>("");
   const [budgetLimit, setBudgetLimit] = useState(0);
+  const [payOpen, setPayOpen] = useState(false);
 
   useEffect(() => { requestNotifPermission(); loadSettings().then((s) => setBudgetLimit(s.budgetLimit)); }, []);
 
