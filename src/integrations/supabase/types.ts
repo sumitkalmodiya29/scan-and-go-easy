@@ -61,9 +61,11 @@ export type Database = {
       }
       orders: {
         Row: {
+          counter_no: number | null
           created_at: string
           expires_at: string
           id: string
+          payment_method: string
           qr_token: string
           status: string
           total: number
@@ -72,9 +74,11 @@ export type Database = {
           verified_by: string | null
         }
         Insert: {
+          counter_no?: number | null
           created_at?: string
           expires_at: string
           id?: string
+          payment_method?: string
           qr_token: string
           status?: string
           total: number
@@ -83,9 +87,11 @@ export type Database = {
           verified_by?: string | null
         }
         Update: {
+          counter_no?: number | null
           created_at?: string
           expires_at?: string
           id?: string
+          payment_method?: string
           qr_token?: string
           status?: string
           total?: number
