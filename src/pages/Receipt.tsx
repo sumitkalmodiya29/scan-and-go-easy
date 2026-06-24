@@ -6,7 +6,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, ShieldCheck, ArrowLeft, Download } from "lucide-react";
+import { CheckCircle2, Clock, ShieldCheck, ArrowLeft, Download, Banknote, MapPin } from "lucide-react";
 import { generateReceiptPDF } from "@/lib/receiptPdf";
 import { TrustBadges } from "@/components/TrustBadges";
 import { useT } from "@/lib/i18n";
@@ -15,6 +15,8 @@ interface Order {
   id: string; total: number; status: string;
   qr_token: string; expires_at: string; verified_at: string | null;
   created_at: string;
+  payment_method?: string | null;
+  counter_no?: number | null;
 }
 interface Item { id: string; name: string; price: number; quantity: number; size: string | null; }
 
@@ -57,6 +59,7 @@ const Receipt = () => {
   const mins = Math.max(0, Math.floor(expiresMs / 60000));
   const secs = Math.max(0, Math.floor((expiresMs % 60000) / 1000));
   const pct = Math.max(0, Math.min(1, expiresMs / TOTAL_MS));
+  const isCash = (order.payment_method ?? "digital") === "cash";
 
   if (expired && !verified) {
     // Soft redirect option to oops, but keep page so customer sees status
@@ -88,12 +91,31 @@ const Receipt = () => {
           <ArrowLeft className="h-4 w-4 mr-1" /> {t("backToShop")}
         </Link>
 
-        <Card className="p-6 glass-strong shadow-elegant border-0 text-center animate-float-in">
-          <div className="flex items-center justify-center gap-2 mb-1 text-success">
-            <CheckCircle2 className="h-5 w-5" />
-            <span className="font-semibold">{t("paymentSuccessful")}</span>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+        <Card className={`p-6 glass-strong shadow-elegant border-0 text-center animate-float-in ${isCash && !verified ? "ring-2 ring-accent/60 shadow-amber" : ""}`}>
+          {isCash && !verified ? (
+            <>
+              <div className="flex items-center justify-center gap-2 mb-1 text-gold">
+                <Banknote className="h-5 w-5" />
+                <span className="font-semibold">{t("cashPendingTitle")}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-2">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+              <p className="text-xs text-muted-foreground mb-1">{t("cashAmountDue")}</p>
+              <p className="text-3xl font-bold text-gold mb-2">₹{Number(order.total).toFixed(2)}</p>
+              {order.counter_no && (
+                <div className="inline-flex items-center gap-1.5 mb-3 px-3 py-1.5 rounded-full glass border border-accent/40 text-xs text-gold">
+                  <MapPin className="h-3 w-3" /> Aisle {order.counter_no} {t("shortestQueue")}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-center gap-2 mb-1 text-success">
+                <CheckCircle2 className="h-5 w-5" />
+                <span className="font-semibold">{t("paymentSuccessful")}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+            </>
+          )}
 
           <div className="mb-4 flex justify-center">
             <TrustBadges />
@@ -109,7 +131,7 @@ const Receipt = () => {
                   style={{ transition: "stroke-dashoffset 1s linear, stroke 0.5s" }} />
               </svg>
             )}
-            <div className={`bg-white rounded-2xl p-4 inline-block shadow-soft border ${verified ? "holo-verified" : !expired ? "holo-ring" : ""}`} style={{ width: size, height: size }}>
+            <div className={`bg-white rounded-2xl p-4 inline-block shadow-soft border ${verified ? "holo-verified" : !expired ? "holo-ring" : ""} ${isCash && !verified && !expired ? "ring-4 ring-accent shadow-amber border-accent" : ""}`} style={{ width: size, height: size }}>
               {verified ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-success">
                   <ShieldCheck className="h-16 w-16 mb-2 animate-pulse-glow rounded-full" />
@@ -142,7 +164,11 @@ const Receipt = () => {
                 </span>
                 <span className="text-muted-foreground">{t("remaining")}</span>
               </div>
-              <p className="text-xs text-muted-foreground">{t("showQr")}</p>
+              {isCash ? (
+                <p className="text-xs text-muted-foreground px-2">{t("cashPendingInstructions")}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t("showQr")}</p>
+              )}
             </div>
           )}
 

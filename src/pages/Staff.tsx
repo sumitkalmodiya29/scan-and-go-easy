@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { QrCode, CheckCircle2, XCircle, ShieldCheck, Clock, Search } from "lucide-react";
+import { QrCode, CheckCircle2, XCircle, ShieldCheck, Clock, Search, Banknote, CreditCard } from "lucide-react";
 import { successChime, errorBuzz, beep } from "@/lib/sound";
 import { requestNotifPermission, notify } from "@/lib/notifications";
 
@@ -21,6 +21,8 @@ interface OrderRow {
   expires_at: string;
   verified_at: string | null;
   created_at: string;
+  payment_method?: string | null;
+  counter_no?: number | null;
 }
 interface ItemRow {
   id: string;
@@ -185,19 +187,28 @@ const Staff = () => {
             </form>
           </Card>
 
-          {order && (
-            <Card className="p-4 shadow-elegant">
+          {order && (() => {
+            const isCash = (order.payment_method ?? "digital") === "cash";
+            return (
+            <Card className={`p-4 shadow-elegant ${isCash && !completed ? "ring-2 ring-accent/60 border-accent/40" : ""}`}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <p className="text-xs text-muted-foreground">Order</p>
                   <p className="font-mono font-semibold">#{order.id.slice(0, 8).toUpperCase()}</p>
+                  <div className="mt-1 inline-flex items-center gap-1 text-[11px]">
+                    {isCash ? (
+                      <Badge className="bg-accent text-accent-foreground"><Banknote className="h-3 w-3 mr-1" /> Cash Pending {order.counter_no ? `• Aisle ${order.counter_no}` : ""}</Badge>
+                    ) : (
+                      <Badge variant="secondary"><CreditCard className="h-3 w-3 mr-1" /> Digital — Paid</Badge>
+                    )}
+                  </div>
                 </div>
                 {completed ? (
                   <Badge className="bg-success text-success-foreground"><ShieldCheck className="h-3 w-3 mr-1" /> Completed</Badge>
                 ) : expired ? (
                   <Badge variant="destructive"><Clock className="h-3 w-3 mr-1" /> Expired</Badge>
                 ) : (
-                  <Badge className="bg-warning text-warning-foreground">Awaiting approval</Badge>
+                  <Badge className="bg-warning text-warning-foreground">{isCash ? "Awaiting cash" : "Awaiting approval"}</Badge>
                 )}
               </div>
               <div className="space-y-2 mb-4">
@@ -211,8 +222,9 @@ const Staff = () => {
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between font-bold mb-4">
-                <span>Total Paid</span><span>₹{Number(order.total).toFixed(2)}</span>
+              <div className={`flex justify-between font-bold mb-4 ${isCash && !completed ? "text-gold text-lg" : ""}`}>
+                <span>{isCash && !completed ? "Collect Cash" : "Total Paid"}</span>
+                <span>₹{Number(order.total).toFixed(2)}</span>
               </div>
               {completed ? (
                 <div className="flex items-center justify-center gap-2 text-success py-2">
@@ -222,14 +234,20 @@ const Staff = () => {
                 <div className="flex items-center justify-center gap-2 text-destructive py-2">
                   <XCircle className="h-5 w-5" /> QR expired — direct to help desk
                 </div>
+              ) : isCash ? (
+                <Button className="w-full bg-success text-success-foreground hover:bg-success/90 border-0 shadow-elegant" size="lg" onClick={approveExit}>
+                  <Banknote className="h-4 w-4 mr-2" /> Cash Received & Approve Exit
+                </Button>
               ) : (
                 <Button className="w-full gradient-primary text-primary-foreground border-0" size="lg" onClick={approveExit}>
                   <CheckCircle2 className="h-4 w-4 mr-2" /> Approve Exit
                 </Button>
               )}
             </Card>
-          )}
+            );
+          })()}
         </div>
+
 
         <Card className="p-4 shadow-soft">
           <h2 className="font-semibold mb-3">Recent Orders (live)</h2>
@@ -239,23 +257,36 @@ const Staff = () => {
               {recent.map((o) => {
                 const isCompleted = o.status === "completed" || o.status === "verified";
                 const isExpired = !isCompleted && new Date(o.expires_at).getTime() < Date.now();
+                const isCash = (o.payment_method ?? "digital") === "cash";
                 return (
                   <div
                     key={o.id}
-                    className="flex items-center justify-between gap-2 p-3 rounded-lg border bg-card hover:border-primary/40 transition-colors"
+                    className={`flex items-center justify-between gap-2 p-3 rounded-lg border bg-card hover:border-primary/40 transition-colors ${isCash && !isCompleted ? "border-accent/50" : ""}`}
                   >
                     <button
                       type="button"
                       onClick={() => loadOrderById(o.id)}
                       className="flex-1 text-left"
                     >
-                      <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8).toUpperCase()}</p>
+                      <p className="font-mono text-xs text-muted-foreground flex items-center gap-1">
+                        #{o.id.slice(0, 8).toUpperCase()}
+                        {isCash && !isCompleted && <Banknote className="h-3 w-3 text-gold" />}
+                        {isCash && !isCompleted && o.counter_no && <span className="text-gold">Aisle {o.counter_no}</span>}
+                      </p>
                       <p className="text-sm">₹{Number(o.total).toFixed(2)} • {new Date(o.created_at).toLocaleTimeString()}</p>
                     </button>
                     {isCompleted ? (
                       <Badge className="bg-success text-success-foreground">Completed</Badge>
                     ) : isExpired ? (
                       <Badge variant="destructive">Expired</Badge>
+                    ) : isCash ? (
+                      <Button
+                        size="sm"
+                        className="bg-accent text-accent-foreground hover:bg-accent/90 border-0"
+                        onClick={(e) => { e.stopPropagation(); completeOrder(o.id); }}
+                      >
+                        <Banknote className="h-3 w-3 mr-1" /> Cash & Approve
+                      </Button>
                     ) : (
                       <Button
                         size="sm"
