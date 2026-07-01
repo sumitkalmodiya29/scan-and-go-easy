@@ -15,7 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Camera, ShoppingBag, Trash2, Plus, Minus, CreditCard, Loader2, Sparkles, TrendingUp, Receipt as ReceiptIcon, AlertTriangle, Wallet, Banknote } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { lookupByBarcode, getCachedProducts } from "@/lib/productCache";
+import { lookupByBarcode, getCachedProducts, resolveByBarcode } from "@/lib/productCache";
 import { requestNotifPermission, notify } from "@/lib/notifications";
 import { successChime, errorBuzz } from "@/lib/sound";
 import { useT } from "@/lib/i18n";
@@ -35,6 +35,7 @@ const Shop = () => {
   const [profileName, setProfileName] = useState<string>("");
   const [budgetLimit, setBudgetLimit] = useState(0);
   const [payOpen, setPayOpen] = useState(false);
+  const [lookupPending, setLookupPending] = useState<string | null>(null);
 
   useEffect(() => { requestNotifPermission(); loadSettings().then((s) => setBudgetLimit(s.budgetLimit)); }, []);
 
@@ -51,25 +52,57 @@ const Shop = () => {
   const points = Math.floor(recent.reduce((s, o) => s + Number(o.total) * 0.01, 0));
 
   const handleScan = async (barcode: string) => {
-    const product = await lookupByBarcode(barcode);
-    if (!product) {
-      errorBuzz();
-      toast.error(`Unknown barcode: ${barcode}`);
+    if (lookupPending) return;
+    // Fast path: already in local cache — no shimmer needed
+    const known = await lookupByBarcode(barcode);
+    if (known) {
+      add({
+        product_id: known.id,
+        barcode: known.barcode,
+        name: known.name,
+        price: Number(known.price),
+        size: known.size,
+      });
+      successChime();
+      if (known.stock > 0 && known.stock <= 5) {
+        toast.warning(`${known.name} • ${t("limitedStock")} (${known.stock})`);
+      } else {
+        toast.success(`Added ${known.name}`);
+      }
       return;
     }
-    add({
-      product_id: product.id,
-      barcode: product.barcode,
-      name: product.name,
-      price: Number(product.price),
-      size: product.size,
-    });
-    successChime();
-    if (product.stock > 0 && product.stock <= 5) {
-      toast.warning(`${product.name} • ${t("limitedStock")} (${product.stock})`);
-    } else {
-      toast.success(`Added ${product.name}`);
+
+    // Unknown → resolve via Supabase → Open Food Facts (shimmer while fetching)
+    setLookupPending(barcode);
+    const result = await resolveByBarcode(barcode);
+    setLookupPending(null);
+
+    if (result.status === "found") {
+      const p = result.product;
+      add({
+        product_id: p.id,
+        barcode: p.barcode,
+        name: p.name,
+        price: Number(p.price),
+        size: p.size,
+      });
+      successChime();
+      if (result.source === "openfoodfacts") {
+        toast.success(`✨ Discovered ${p.name} • ₹${Number(p.price).toFixed(2)}`);
+      } else {
+        toast.success(`Added ${p.name}`);
+      }
+      return;
     }
+
+    if (result.status === "queued") {
+      errorBuzz();
+      toast.warning(`Offline — will look up ${barcode} when back online`);
+      return;
+    }
+
+    errorBuzz();
+    toast.error("Product not found in store inventory. Please alert the staff.");
   };
 
   const handlePay = async (method: "digital" | "cash") => {
@@ -213,6 +246,21 @@ const Shop = () => {
             <div className="aspect-[4/3] rounded-xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center text-muted-foreground gap-2 bg-card/40">
               <Camera className="h-10 w-10" />
               <p className="text-sm">{t("tapStartScan")}</p>
+            </div>
+          )}
+          {lookupPending && (
+            <div className="mt-3 relative overflow-hidden rounded-xl p-3 glass border border-accent/40 shadow-elegant">
+              <div className="absolute inset-0 shimmer-gold pointer-events-none" />
+              <div className="relative flex items-center gap-3">
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/30 to-accent/30 animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-2/3 rounded bg-white/10 animate-pulse" />
+                  <div className="h-3 w-1/3 rounded bg-white/10 animate-pulse" />
+                  <p className="text-[10px] uppercase tracking-widest text-gold">
+                    Fetching product · {lookupPending}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
           <details className="mt-3 text-xs text-muted-foreground">

@@ -10,6 +10,7 @@ const queueStore = createStore("scango-queue-db", "kv");
 const PRODUCTS_KEY = "products";
 const PRODUCTS_TS_KEY = "products_ts";
 const QUEUE_KEY = "pending_orders";
+const LOOKUP_QUEUE_KEY = "pending_lookups";
 const PRODUCT_TTL = 1000 * 60 * 30;
 
 export interface CachedProduct {
@@ -19,6 +20,7 @@ export interface CachedProduct {
   price: number;
   size: string | null;
   stock: number;
+  image_url?: string | null;
 }
 
 // --- Products -----------------------------------------------------
@@ -110,4 +112,21 @@ export const syncQueue = async (): Promise<number> => {
   }
   await queueReplace(remaining);
   return synced;
+};
+
+// --- Pending barcode lookups (queued when offline) ----------------
+export const lookupQueueAdd = async (barcode: string) => {
+  const list = ((await get(LOOKUP_QUEUE_KEY, queueStore)) as string[]) ?? [];
+  if (!list.includes(barcode)) {
+    list.push(barcode);
+    await set(LOOKUP_QUEUE_KEY, list, queueStore);
+  }
+};
+
+export const lookupQueueAll = async (): Promise<string[]> =>
+  ((await get(LOOKUP_QUEUE_KEY, queueStore)) as string[]) ?? [];
+
+export const lookupQueueReplace = async (list: string[]) => {
+  if (list.length === 0) await del(LOOKUP_QUEUE_KEY, queueStore);
+  else await set(LOOKUP_QUEUE_KEY, list, queueStore);
 };
