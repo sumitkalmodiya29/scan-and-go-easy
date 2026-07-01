@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Camera, ShoppingBag, Trash2, Plus, Minus, CreditCard, Loader2, Sparkles, TrendingUp, Receipt as ReceiptIcon, AlertTriangle, Wallet, Banknote } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { lookupByBarcode, getCachedProducts, resolveByBarcode } from "@/lib/productCache";
+import { ProductDetailDialog, ProductDetail } from "@/components/ProductDetailDialog";
 import { requestNotifPermission, notify } from "@/lib/notifications";
 import { successChime, errorBuzz } from "@/lib/sound";
 import { useT } from "@/lib/i18n";
@@ -36,6 +37,7 @@ const Shop = () => {
   const [budgetLimit, setBudgetLimit] = useState(0);
   const [payOpen, setPayOpen] = useState(false);
   const [lookupPending, setLookupPending] = useState<string | null>(null);
+  const [detail, setDetail] = useState<ProductDetail | null>(null);
 
   useEffect(() => { requestNotifPermission(); loadSettings().then((s) => setBudgetLimit(s.budgetLimit)); }, []);
 
@@ -51,56 +53,36 @@ const Shop = () => {
   // GoPoints — 1% cashback on recent purchases
   const points = Math.floor(recent.reduce((s, o) => s + Number(o.total) * 0.01, 0));
 
-  const handleScan = async (barcode: string) => {
-    if (lookupPending) return;
-    // Fast path: already in local cache — no shimmer needed
-    const known = await lookupByBarcode(barcode);
-    if (known) {
-      add({
-        product_id: known.id,
-        barcode: known.barcode,
-        name: known.name,
-        price: Number(known.price),
-        size: known.size,
-      });
-      successChime();
-      if (known.stock > 0 && known.stock <= 5) {
-        toast.warning(`${known.name} • ${t("limitedStock")} (${known.stock})`);
-      } else {
-        toast.success(`Added ${known.name}`);
-      }
+  const openOrAdd = (p: ProductDetail) => {
+    const cat = (p.category ?? "").toLowerCase();
+    if (cat === "clothing" || cat === "grocery") {
+      setDetail(p);
       return;
     }
+    add({ product_id: p.id, barcode: p.barcode, name: p.name, price: Number(p.discount_price ?? p.price), size: p.size });
+    successChime();
+    toast.success(`Added ${p.name}`);
+  };
 
-    // Unknown → resolve via Supabase → Open Food Facts (shimmer while fetching)
+  const handleScan = async (barcode: string) => {
+    if (lookupPending) return;
+    const known = await lookupByBarcode(barcode);
+    if (known) { openOrAdd(known as ProductDetail); return; }
+
     setLookupPending(barcode);
     const result = await resolveByBarcode(barcode);
     setLookupPending(null);
 
     if (result.status === "found") {
-      const p = result.product;
-      add({
-        product_id: p.id,
-        barcode: p.barcode,
-        name: p.name,
-        price: Number(p.price),
-        size: p.size,
-      });
-      successChime();
-      if (result.source === "openfoodfacts") {
-        toast.success(`✨ Discovered ${p.name} • ₹${Number(p.price).toFixed(2)}`);
-      } else {
-        toast.success(`Added ${p.name}`);
-      }
+      if (result.source === "openfoodfacts") toast.success(`✨ Discovered ${result.product.name}`);
+      openOrAdd(result.product as ProductDetail);
       return;
     }
-
     if (result.status === "queued") {
       errorBuzz();
       toast.warning(`Offline — will look up ${barcode} when back online`);
       return;
     }
-
     errorBuzz();
     toast.error("Product not found in store inventory. Please alert the staff.");
   };
@@ -389,6 +371,21 @@ const Shop = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ProductDetailDialog
+        product={detail}
+        onClose={() => setDetail(null)}
+        onConfirm={({ size, quantity }) => {
+          if (!detail) return;
+          const price = Number(detail.discount_price ?? detail.price);
+          for (let i = 0; i < quantity; i++) {
+            add({ product_id: detail.id, barcode: detail.barcode, name: detail.name, price, size });
+          }
+          successChime();
+          toast.success(`Added ${quantity} × ${detail.name}`);
+          setDetail(null);
+        }}
+      />
     </AppLayout>
   );
 };
