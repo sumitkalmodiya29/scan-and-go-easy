@@ -249,7 +249,7 @@ const Shop = () => {
             </div>
           )}
           {lookupPending && (
-            <div className="mt-3 relative overflow-hidden rounded-xl p-3 glass border border-gold/40 shadow-amber">
+            <div className="mt-3 relative overflow-hidden rounded-xl p-3 glass border border-accent/40 shadow-elegant">
               <div className="absolute inset-0 shimmer-gold pointer-events-none" />
               <div className="relative flex items-center gap-3">
                 <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-emerald/30 to-gold/30 animate-pulse" />
