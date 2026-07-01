@@ -20,6 +20,7 @@ export interface CachedProduct {
   price: number;
   size: string | null;
   stock: number;
+  image_url?: string | null;
 }
 
 // --- Products -----------------------------------------------------
