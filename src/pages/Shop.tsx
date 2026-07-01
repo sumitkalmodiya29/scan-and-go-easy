@@ -248,6 +248,21 @@ const Shop = () => {
               <p className="text-sm">{t("tapStartScan")}</p>
             </div>
           )}
+          {lookupPending && (
+            <div className="mt-3 relative overflow-hidden rounded-xl p-3 glass border border-gold/40 shadow-amber">
+              <div className="absolute inset-0 shimmer-gold pointer-events-none" />
+              <div className="relative flex items-center gap-3">
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-emerald/30 to-gold/30 animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-2/3 rounded bg-white/10 animate-pulse" />
+                  <div className="h-3 w-1/3 rounded bg-white/10 animate-pulse" />
+                  <p className="text-[10px] uppercase tracking-widest text-gold">
+                    Fetching product · {lookupPending}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           <details className="mt-3 text-xs text-muted-foreground">
             <summary className="cursor-pointer">{t("demoBarcodes")}</summary>
             <div className="mt-2 grid grid-cols-2 gap-1 font-mono">
