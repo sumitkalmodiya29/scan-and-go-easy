@@ -198,3 +198,23 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 .page-slide { animation: pageSlide 0.35s cubic-bezier(0.32, 0.72, 0, 1) both; }
+
+/* Gold/Emerald shimmer skeleton for API product lookups */
+@keyframes shimmerSlide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.shimmer-gold::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    hsl(var(--emerald) / 0.18) 30%,
+    hsl(var(--gold) / 0.35) 50%,
+    hsl(var(--emerald) / 0.18) 70%,
+    transparent 100%
+  );
+  animation: shimmerSlide 1.4s ease-in-out infinite;
+}
