@@ -35,6 +35,7 @@ const Shop = () => {
   const [profileName, setProfileName] = useState<string>("");
   const [budgetLimit, setBudgetLimit] = useState(0);
   const [payOpen, setPayOpen] = useState(false);
+  const [lookupPending, setLookupPending] = useState<string | null>(null);
 
   useEffect(() => { requestNotifPermission(); loadSettings().then((s) => setBudgetLimit(s.budgetLimit)); }, []);
 
