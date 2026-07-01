@@ -52,25 +52,57 @@ const Shop = () => {
   const points = Math.floor(recent.reduce((s, o) => s + Number(o.total) * 0.01, 0));
 
   const handleScan = async (barcode: string) => {
-    const product = await lookupByBarcode(barcode);
-    if (!product) {
-      errorBuzz();
-      toast.error(`Unknown barcode: ${barcode}`);
+    if (lookupPending) return;
+    // Fast path: already in local cache — no shimmer needed
+    const known = await lookupByBarcode(barcode);
+    if (known) {
+      add({
+        product_id: known.id,
+        barcode: known.barcode,
+        name: known.name,
+        price: Number(known.price),
+        size: known.size,
+      });
+      successChime();
+      if (known.stock > 0 && known.stock <= 5) {
+        toast.warning(`${known.name} • ${t("limitedStock")} (${known.stock})`);
+      } else {
+        toast.success(`Added ${known.name}`);
+      }
       return;
     }
-    add({
-      product_id: product.id,
-      barcode: product.barcode,
-      name: product.name,
-      price: Number(product.price),
-      size: product.size,
-    });
-    successChime();
-    if (product.stock > 0 && product.stock <= 5) {
-      toast.warning(`${product.name} • ${t("limitedStock")} (${product.stock})`);
-    } else {
-      toast.success(`Added ${product.name}`);
+
+    // Unknown → resolve via Supabase → Open Food Facts (shimmer while fetching)
+    setLookupPending(barcode);
+    const result = await resolveByBarcode(barcode);
+    setLookupPending(null);
+
+    if (result.status === "found") {
+      const p = result.product;
+      add({
+        product_id: p.id,
+        barcode: p.barcode,
+        name: p.name,
+        price: Number(p.price),
+        size: p.size,
+      });
+      successChime();
+      if (result.source === "openfoodfacts") {
+        toast.success(`✨ Discovered ${p.name} • ₹${Number(p.price).toFixed(2)}`);
+      } else {
+        toast.success(`Added ${p.name}`);
+      }
+      return;
     }
+
+    if (result.status === "queued") {
+      errorBuzz();
+      toast.warning(`Offline — will look up ${barcode} when back online`);
+      return;
+    }
+
+    errorBuzz();
+    toast.error("Product not found in store inventory. Please alert the staff.");
   };
 
   const handlePay = async (method: "digital" | "cash") => {
