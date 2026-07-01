@@ -113,3 +113,20 @@ export const syncQueue = async (): Promise<number> => {
   await queueReplace(remaining);
   return synced;
 };
+
+// --- Pending barcode lookups (queued when offline) ----------------
+export const lookupQueueAdd = async (barcode: string) => {
+  const list = ((await get(LOOKUP_QUEUE_KEY, queueStore)) as string[]) ?? [];
+  if (!list.includes(barcode)) {
+    list.push(barcode);
+    await set(LOOKUP_QUEUE_KEY, list, queueStore);
+  }
+};
+
+export const lookupQueueAll = async (): Promise<string[]> =>
+  ((await get(LOOKUP_QUEUE_KEY, queueStore)) as string[]) ?? [];
+
+export const lookupQueueReplace = async (list: string[]) => {
+  if (list.length === 0) await del(LOOKUP_QUEUE_KEY, queueStore);
+  else await set(LOOKUP_QUEUE_KEY, list, queueStore);
+};
