@@ -104,33 +104,60 @@ export type Database = {
       products: {
         Row: {
           barcode: string
+          category: string | null
           created_at: string
+          discount_price: number | null
           id: string
           image_url: string | null
+          mrp: number | null
           name: string
           price: number
           size: string | null
           stock: number
+          stock_quantity: number
+          store_branch: string | null
+          sub_category: string | null
+          tax_rate_gst: number
+          updated_at: string
+          variants: Json | null
         }
         Insert: {
           barcode: string
+          category?: string | null
           created_at?: string
+          discount_price?: number | null
           id?: string
           image_url?: string | null
+          mrp?: number | null
           name: string
           price: number
           size?: string | null
           stock?: number
+          stock_quantity?: number
+          store_branch?: string | null
+          sub_category?: string | null
+          tax_rate_gst?: number
+          updated_at?: string
+          variants?: Json | null
         }
         Update: {
           barcode?: string
+          category?: string | null
           created_at?: string
+          discount_price?: number | null
           id?: string
           image_url?: string | null
+          mrp?: number | null
           name?: string
           price?: number
           size?: string | null
           stock?: number
+          stock_quantity?: number
+          store_branch?: string | null
+          sub_category?: string | null
+          tax_rate_gst?: number
+          updated_at?: string
+          variants?: Json | null
         }
         Relationships: []
       }
