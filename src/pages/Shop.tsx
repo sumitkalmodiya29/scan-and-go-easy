@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Camera, ShoppingBag, Trash2, Plus, Minus, CreditCard, Loader2, Sparkles, TrendingUp, Receipt as ReceiptIcon, AlertTriangle, Wallet, Banknote } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { lookupByBarcode, getCachedProducts, resolveByBarcode } from "@/lib/productCache";
+import { ProductDetailDialog, ProductDetail } from "@/components/ProductDetailDialog";
 import { requestNotifPermission, notify } from "@/lib/notifications";
 import { successChime, errorBuzz } from "@/lib/sound";
 import { useT } from "@/lib/i18n";
