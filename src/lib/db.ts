@@ -10,6 +10,7 @@ const queueStore = createStore("scango-queue-db", "kv");
 const PRODUCTS_KEY = "products";
 const PRODUCTS_TS_KEY = "products_ts";
 const QUEUE_KEY = "pending_orders";
+const LOOKUP_QUEUE_KEY = "pending_lookups";
 const PRODUCT_TTL = 1000 * 60 * 30;
 
 export interface CachedProduct {
