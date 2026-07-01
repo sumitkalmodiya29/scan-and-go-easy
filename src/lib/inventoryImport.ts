@@ -119,7 +119,7 @@ export const bulkUpsertProducts = async (
     const slice = rows.slice(i, i + CHUNK);
     const { error, count } = await supabase
       .from("products")
-      .upsert(slice, { onConflict: "barcode", count: "exact" });
+      .upsert(slice as never, { onConflict: "barcode", count: "exact" });
     if (error) {
       report.failed += slice.length;
       report.errors.push({ row: i + 2, reason: error.message });
