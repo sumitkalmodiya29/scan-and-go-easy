@@ -211,9 +211,9 @@
   background: linear-gradient(
     110deg,
     transparent 0%,
-    hsl(var(--emerald) / 0.18) 30%,
-    hsl(var(--gold) / 0.35) 50%,
-    hsl(var(--emerald) / 0.18) 70%,
+    hsl(var(--primary) / 0.18) 30%,
+    hsl(var(--accent) / 0.38) 50%,
+    hsl(var(--primary) / 0.18) 70%,
     transparent 100%
   );
   animation: shimmerSlide 1.4s ease-in-out infinite;
