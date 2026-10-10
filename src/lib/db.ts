@@ -21,12 +21,6 @@ export interface CachedProduct {
   size: string | null;
   stock: number;
   image_url?: string | null;
-  category?: string | null;
-  sub_category?: string | null;
-  mrp?: number | null;
-  discount_price?: number | null;
-  tax_rate_gst?: number | null;
-  variants?: { sizes?: string[]; colors?: string[]; weights?: string[] } | null;
 }
 
 // --- Products -----------------------------------------------------
