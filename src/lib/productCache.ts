@@ -26,7 +26,7 @@ export const primeCache = async () => {
 export const refreshProductCache = async (): Promise<CachedProduct[]> => {
   const { data } = await supabase
     .from("products")
-    .select("id, barcode, name, price, size, stock, image_url");
+    .select("id, barcode, name, price, size, stock, image_url, category");
   if (data) {
     memCache = data as CachedProduct[];
     await idbSaveProducts(memCache);
@@ -90,7 +90,7 @@ export const fetchFromOpenFoodFacts = async (
     const { data, error } = await supabase
       .from("products")
       .insert(insertPayload)
-      .select("id, barcode, name, price, size, stock, image_url")
+      .select("id, barcode, name, price, size, stock, image_url, category")
       .single();
 
     if (error || !data) return null;
@@ -117,7 +117,7 @@ export const flushPendingLookups = async (): Promise<number> => {
     if (cached) { synced++; continue; }
     const { data } = await supabase
       .from("products")
-      .select("id, barcode, name, price, size, stock, image_url")
+      .select("id, barcode, name, price, size, stock, image_url, category")
       .eq("barcode", code)
       .maybeSingle();
     if (data) { upsertMem(data as CachedProduct); synced++; continue; }
@@ -143,7 +143,7 @@ export const lookupByBarcode = async (
   if (!navigator.onLine) return null;
   const { data } = await supabase
     .from("products")
-    .select("id, barcode, name, price, size, stock, image_url")
+    .select("id, barcode, name, price, size, stock, image_url, category")
     .eq("barcode", code)
     .maybeSingle();
   if (data) {
@@ -173,7 +173,7 @@ export const resolveByBarcode = async (barcode: string): Promise<ResolveResult> 
 
   const { data } = await supabase
     .from("products")
-    .select("id, barcode, name, price, size, stock, image_url")
+    .select("id, barcode, name, price, size, stock, image_url, category")
     .eq("barcode", code)
     .maybeSingle();
   if (data) {

@@ -147,6 +147,7 @@ const Staff = () => {
 
   return (
     <AppLayout title="Staff">
+      <div className="mb-4 flex justify-end"><Button variant="outline" size="sm" onClick={() => window.location.assign("/inventory")}>Bulk Inventory Upload</Button></div>
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="space-y-4">
           <Card className="p-4 shadow-soft">

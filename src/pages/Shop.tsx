@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useCart } from "@/hooks/useCart";
+import { useCart, lineKey } from "@/hooks/useCart";
+import { VariantPicker, needsVariant, VariantProduct } from "@/components/VariantPicker";
 import { useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/AppLayout";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
@@ -36,6 +37,7 @@ const Shop = () => {
   const [budgetLimit, setBudgetLimit] = useState(0);
   const [payOpen, setPayOpen] = useState(false);
   const [lookupPending, setLookupPending] = useState<string | null>(null);
+  const [variantFor, setVariantFor] = useState<VariantProduct | null>(null);
 
   useEffect(() => { requestNotifPermission(); loadSettings().then((s) => setBudgetLimit(s.budgetLimit)); }, []);
 
@@ -55,6 +57,7 @@ const Shop = () => {
     if (lookupPending) return;
     // Fast path: already in local cache — no shimmer needed
     const known = await lookupByBarcode(barcode);
+    if (known && needsVariant(known.category)) { setVariantFor(known); return; }
     if (known) {
       add({
         product_id: known.id,
@@ -79,6 +82,7 @@ const Shop = () => {
 
     if (result.status === "found") {
       const p = result.product;
+      if (needsVariant(p.category)) { setVariantFor(p); return; }
       add({
         product_id: p.id,
         barcode: p.barcode,
@@ -290,7 +294,7 @@ const Shop = () => {
                   const cached = getCachedProducts().find(p => p.id === i.product_id);
                   const lowStock = cached && cached.stock > 0 && cached.stock <= 5;
                   return (
-                    <div key={i.product_id} className="flex items-center gap-3 p-2 rounded-lg glass animate-float-in">
+                    <div key={lineKey(i)} className="flex items-center gap-3 p-2 rounded-lg glass animate-float-in">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate flex items-center gap-2">
                           {i.name}
@@ -301,12 +305,12 @@ const Shop = () => {
                         </p>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button size="icon" variant="ghost" className="h-7 w-7 tappable" onClick={() => setQty(i.product_id, i.quantity - 1)}><Minus className="h-3 w-3" /></Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 tappable" onClick={() => setQty(lineKey(i), i.quantity - 1)}><Minus className="h-3 w-3" /></Button>
                         <span className="w-6 text-center text-sm font-medium">{i.quantity}</span>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 tappable" onClick={() => setQty(i.product_id, i.quantity + 1)}><Plus className="h-3 w-3" /></Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 tappable" onClick={() => setQty(lineKey(i), i.quantity + 1)}><Plus className="h-3 w-3" /></Button>
                       </div>
                       <p className="w-20 text-right font-semibold">₹{(i.price * i.quantity).toFixed(2)}</p>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive tappable" onClick={() => remove(i.product_id)}>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive tappable" onClick={() => remove(lineKey(i))}>
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
@@ -389,6 +393,9 @@ const Shop = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <VariantPicker product={variantFor} onClose={() => setVariantFor(null)} onPick={(line) => {
+        add(line); successChime(); toast.success(`Added ${line.name}`); setVariantFor(null);
+      }} />
     </AppLayout>
   );
 };

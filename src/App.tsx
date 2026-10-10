@@ -22,6 +22,7 @@ import Welcome from "./pages/Welcome.tsx";
 import Home from "./pages/Home.tsx";
 import Orders from "./pages/Orders.tsx";
 import Wallet from "./pages/Wallet.tsx";
+import Inventory from "./pages/Inventory.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,7 @@ const App = () => (
               <Route path="/shop" element={<RequireAuth role="customer"><Shop /></RequireAuth>} />
               <Route path="/receipt/:id" element={<RequireAuth><Receipt /></RequireAuth>} />
               <Route path="/staff" element={<RequireAuth role={["staff", "admin"]}><Staff /></RequireAuth>} />
+              <Route path="/inventory" element={<RequireAuth role={["staff", "admin"]}><Inventory /></RequireAuth>} />
               <Route path="/oops" element={<Oops />} />
               <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
               <Route path="*" element={<NotFound />} />
