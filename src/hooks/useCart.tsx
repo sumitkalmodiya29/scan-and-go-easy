@@ -7,7 +7,10 @@ export interface CartItem {
   price: number;
   size: string | null;
   quantity: number;
+  line_id?: string;
 }
+
+export const lineKey = (i: { product_id: string; line_id?: string }) => i.line_id ?? i.product_id;
 
 interface CartCtx {
   items: CartItem[];
@@ -38,19 +41,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const add: CartCtx["add"] = useCallback((item) => {
     setItems((prev) => {
-      const ex = prev.find((i) => i.product_id === item.product_id);
-      if (ex) return prev.map((i) => i.product_id === item.product_id ? { ...i, quantity: i.quantity + 1 } : i);
+      const k = lineKey(item);
+      const ex = prev.find((i) => lineKey(i) === k);
+      if (ex) return prev.map((i) => lineKey(i) === k ? { ...i, quantity: i.quantity + 1 } : i);
       return [...prev, { ...item, quantity: 1 }];
     });
   }, []);
 
   const remove = useCallback((id: string) => {
-    setItems((p) => p.filter((i) => i.product_id !== id));
+    setItems((p) => p.filter((i) => lineKey(i) !== id));
   }, []);
 
   const setQty = useCallback((id: string, qty: number) => {
-    if (qty <= 0) return setItems((p) => p.filter((i) => i.product_id !== id));
-    setItems((p) => p.map((i) => (i.product_id === id ? { ...i, quantity: qty } : i)));
+    if (qty <= 0) return setItems((p) => p.filter((i) => lineKey(i) !== id));
+    setItems((p) => p.map((i) => (lineKey(i) === id ? { ...i, quantity: qty } : i)));
   }, []);
 
   const clear = useCallback(() => setItems([]), []);

@@ -21,6 +21,7 @@ export interface CachedProduct {
   size: string | null;
   stock: number;
   image_url?: string | null;
+  category?: string | null;
 }
 
 // --- Products -----------------------------------------------------
